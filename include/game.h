@@ -1,0 +1,5 @@
+score();
+
+winnerDetection();
+
+playerSwitch();
