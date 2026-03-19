@@ -1,19 +1,19 @@
-CC=gcc
-CFLAGS=-Wall -g
+CC = gcc
+CFLAGS = -Wall -g
 
-all: game
 
-game: main.o board.o game.o
-	$(CC) $(CFLAGS) -o game main.o board.o game.o
 
-main.o: main.c
-	$(CC) $(CFLAGS) -c main.c
+all: main.o game.o board.o
+	$(CC) $(CFLAGS) -o game main.o game.o board.o 
 
-board.o: board.c
-	$(CC) $(CFLAGS) -c board.c
+main.o: src/main.c include/game.h 
+	$(CC) $(CFLAGS) -c src/main.c
 
-game.o: game.c
-	$(CC) $(CFLAGS) -c game.c
+game.o: src/game.c include/game.h include/board.h
+	$(CC) $(CFLAGS) -c src/game.c
+
+board.o: src/board.c include/board.h
+	$(CC) $(CFLAGS) -c src/board.c
 
 clean:
 	rm -f *.o game

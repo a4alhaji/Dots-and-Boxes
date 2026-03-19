@@ -1,5 +1,6 @@
-score();
+#ifndef GAME_H
+#define GAME_H
 
-winnerDetection();
+void startGame();
 
-playerSwitch();
+#endif

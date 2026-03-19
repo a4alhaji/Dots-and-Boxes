@@ -1,4 +1,6 @@
 #ignore object code
 *.o
+main
+.vscode/
 
 
