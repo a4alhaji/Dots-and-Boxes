@@ -2,16 +2,38 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build with make",
+            "label": "Build Game",
             "type": "shell",
             "command": "make",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true
+            },
             "group": {
                 "kind": "build",
                 "isDefault": false
-            }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Run Game",
+            "type": "shell",
+            "command": "${workspaceFolder}/game",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "dependsOn": "Build Game",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "focus": true,
+                "clear": true
+            },
+            "problemMatcher": []
         },
         {
             "type": "cppbuild",

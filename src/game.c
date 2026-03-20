@@ -1,5 +1,4 @@
 #include <stdio.h>
-
 #include "../include/board.h"
 #include "../include/game.h"
 

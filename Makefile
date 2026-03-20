@@ -1,12 +1,14 @@
 CC = gcc
-CFLAGS = -Wall -g
+CFLAGS = -Wall -Werror -g
 
 
+all: game
+	
 
-all: main.o game.o board.o
+game: main.o game.o board.o
 	$(CC) $(CFLAGS) -o game main.o game.o board.o 
 
-main.o: src/main.c include/game.h 
+main.o: src/main.c include/game.h
 	$(CC) $(CFLAGS) -c src/main.c
 
 game.o: src/game.c include/game.h include/board.h
