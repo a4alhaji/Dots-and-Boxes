@@ -2,9 +2,13 @@ CC = gcc
 CFLAGS = -Wall -Werror -g
 
 
-all: game
-	
 
+all: game
+
+run: 
+	./game
+
+	
 game: main.o game.o board.o
 	$(CC) $(CFLAGS) -o game main.o game.o board.o 
 
