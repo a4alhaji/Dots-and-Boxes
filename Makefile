@@ -1,11 +1,11 @@
 CC = gcc
-CFLAGS = -Wall -Werror -g
+CFLAGS = -Wall -g
 
 
 
 all: game
 
-run: 
+run: game
 	./game
 
 	
@@ -21,5 +21,11 @@ game.o: src/game.c src/game.h src/board.h
 board.o: src/board.c src/board.h
 	$(CC) $(CFLAGS) -c src/board.c
 
+server: src/server.c src/board.c
+	$(CC) $(CFLAGS) -o server src/server.c src/board.c -lpthread
+
+client: src/client.c
+	$(CC) $(CFLAGS) -o client src/client.c
+
 clean:
-	rm -f *.o game
+	rm -f *.o game server client

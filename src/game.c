@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
 #include "board.h"
 
 int isValidLine(int i, int j){
@@ -132,6 +133,7 @@ void hardBotMove(){
 }
 
 void startGame(){
+    initBoard();
     int mode;
 
     printf("Choose mode:\n");

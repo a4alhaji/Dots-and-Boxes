@@ -1,8 +1,7 @@
 #ifndef BOARD_H
 #define BOARD_H
-
-#define ROWS 9
-#define COLS 11
+#define ROWS 5
+#define COLS 6
 
 extern char grid[ROWS][COLS];
 
