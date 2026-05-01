@@ -1,31 +1,26 @@
+# =========================
+# Makefile
+# =========================
+
 CC = gcc
 CFLAGS = -Wall -Werror -g
 
+all: server client
 
+server: server.o board.o
+	$(CC) $(CFLAGS) -o server server.o board.o -lpthread
 
-all: game
+client: client.o board.o
+	$(CC) $(CFLAGS) -o client client.o board.o
 
-run: game
-	./game
+server.o: src/server.c src/board.h
+	$(CC) $(CFLAGS) -c src/server.c
 
-	
-game: main.o game.o board.o
-	$(CC) $(CFLAGS) -o game main.o game.o board.o 
-
-main.o: src/main.c src/game.h
-	$(CC) $(CFLAGS) -c src/main.c
-
-game.o: src/game.c src/game.h src/board.h
-	$(CC) $(CFLAGS) -c src/game.c
+client.o: src/client.c src/board.h
+	$(CC) $(CFLAGS) -c src/client.c
 
 board.o: src/board.c src/board.h
 	$(CC) $(CFLAGS) -c src/board.c
 
-server: src/server.c src/board.c
-	$(CC) $(CFLAGS) -o server src/server.c src/board.c -lpthread
-
-client: src/client.c
-	$(CC) $(CFLAGS) -o client src/client.c
-
 clean:
-	rm -f *.o game server client
+	rm -f *.o server client
