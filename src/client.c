@@ -11,15 +11,13 @@
 #include "board.h"
 
 #define PORT 8080
+#define STATUS_LEN 80
 
 typedef struct {
-
     char hLines[ROWS][COLS-1];
     char vLines[ROWS-1][COLS];
     char boxes[ROWS-1][COLS-1];
-
-    char status[20];
-
+    char status[STATUS_LEN];
 } GameState;
 
 typedef struct {
@@ -29,93 +27,127 @@ typedef struct {
     int c2;
 } Move;
 
-int main(){
+static int sendAll(int sock, const void *buf, size_t len) {
+    size_t total = 0;
+    const char *p = (const char *)buf;
 
+    while (total < len) {
+        ssize_t sent = send(sock, p + total, len - total, 0);
+        if (sent <= 0) {
+            return -1;
+        }
+        total += (size_t)sent;
+    }
+
+    return 0;
+}
+
+static int recvAll(int sock, void *buf, size_t len) {
+    size_t total = 0;
+    char *p = (char *)buf;
+
+    while (total < len) {
+        ssize_t got = recv(sock, p + total, len - total, 0);
+        if (got <= 0) {
+            return -1;
+        }
+        total += (size_t)got;
+    }
+
+    return 0;
+}
+
+int main(int argc, char **argv) {
     int sock;
-
     struct sockaddr_in serv_addr;
 
+    const char *server_ip = "127.0.0.1";
+    if (argc >= 2) {
+        server_ip = argv[1];
+    }
+
     sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock < 0) {
+        perror("Socket failed");
+        return 1;
+    }
 
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(PORT);
 
-    inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr);
+    if (inet_pton(AF_INET, server_ip, &serv_addr.sin_addr) <= 0) {
+        printf("Invalid server IP: %s\n", server_ip);
+        close(sock);
+        return 1;
+    }
 
-    connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
+    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+        perror("Connection failed");
+        close(sock);
+        return 1;
+    }
 
     char myPlayer;
+    if (recvAll(sock, &myPlayer, sizeof(char)) < 0) {
+        printf("Failed to receive player ID\n");
+        close(sock);
+        return 1;
+    }
 
-    recv(sock, &myPlayer, sizeof(char), 0);
-
-    printf("You are Player %c\n", myPlayer);
-
-  while(1){
-
-    GameState state;
-
-    int total = 0;
-    int bytes;
-
-    while(total < sizeof(GameState)){
-
-        bytes = recv(
-            sock,
-            ((char*)&state) + total,
-            sizeof(GameState) - total,
-            0
-        );
-
-        if(bytes <= 0){
+    while (1) {
+        GameState state;
+        if (recvAll(sock, &state, sizeof(GameState)) < 0) {
             printf("Disconnected from server\n");
             close(sock);
             return 0;
         }
 
-        total += bytes;
-    }
+        memcpy(hLines, state.hLines, sizeof(hLines));
+        memcpy(vLines, state.vLines, sizeof(vLines));
+        memcpy(boxes, state.boxes, sizeof(boxes));
 
-    memcpy(hLines, state.hLines, sizeof(hLines));
-    memcpy(vLines, state.vLines, sizeof(vLines));
-    memcpy(boxes, state.boxes, sizeof(boxes));
+        system("clear");
+        printf("You are Player %c\n\n", myPlayer);
+        printBoard();
+        printf("\n%s\n", state.status);
 
-    system("clear");
+        if (strcmp(state.status, "GAME OVER") == 0) {
+            break;
+        }
 
-    printf("You are Player %c\n\n", myPlayer);
+        if (strstr(state.status, "YOUR TURN") != NULL) {
+            Move move;
 
-    printBoard();
+            printf("Enter r1 c1: ");
+            if (scanf("%d %d", &move.r1, &move.c1) != 2) {
+                printf("Invalid input\n");
+                break;
+            }
 
-    printf("\n%s\n", state.status);
+            printf("Enter r2 c2: ");
+            if (scanf("%d %d", &move.r2, &move.c2) != 2) {
+                printf("Invalid input\n");
+                break;
+            }
 
-    // =====================
-    // YOUR TURN
-    // =====================
-    if(strcmp(state.status, "YOUR TURN") == 0){
+            if (sendAll(sock, &move, sizeof(Move)) < 0) {
+                printf("Failed to send move\n");
+                break;
+            }
 
-        Move move;
+            char response[20];
+            if (recvAll(sock, response, sizeof(response)) < 0) {
+                printf("Disconnected from server\n");
+                break;
+            }
 
-        printf("Enter r1 c1: ");
-        scanf("%d %d", &move.r1, &move.c1);
-
-        printf("Enter r2 c2: ");
-        scanf("%d %d", &move.r2, &move.c2);
-
-        send(sock, &move, sizeof(Move), 0);
-
-        char response[20];
-
-        recv(sock, response, sizeof(response), 0);
-
-        if(strcmp(response, "INVALID") == 0){
-
-            printf("\nInvalid move!\n");
-
-            sleep(1);
+            if (strcmp(response, "INVALID") == 0) {
+                printf("\nInvalid move!\n");
+                sleep(1);
+            }
         }
     }
-}
 
     close(sock);
-
     return 0;
 }
